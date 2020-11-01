@@ -27,7 +27,7 @@ local stick_nodebox = {
 		}
 	}
 
-minetest.register_node("living_trees:branch_1", {
+minetest.register_node("living_trees:branch_T_1", {
 	description = "Large branch",
 	tiles = {
 		{
@@ -44,7 +44,7 @@ minetest.register_node("living_trees:branch_1", {
 	collision_box = large_nodebox
 })
 
-minetest.register_node("living_trees:branch_2", {
+minetest.register_node("living_trees:branch_1_2", {
 	description = "Medium branch",
 	tiles = {
 		{
@@ -61,7 +61,7 @@ minetest.register_node("living_trees:branch_2", {
 	collision_box = medium_nodebox
 })
 
-minetest.register_node("living_trees:branch_3", {
+minetest.register_node("living_trees:branch_2_3", {
 	description = "Small branch",
 	tiles = {
 		{
@@ -78,7 +78,7 @@ minetest.register_node("living_trees:branch_3", {
 	collision_box = small_nodebox
 })
 
-minetest.register_node("living_trees:branch_4", {
+minetest.register_node("living_trees:branch_3_4", {
 	description = "Stick branch",
 	tiles = {
 		{
@@ -93,4 +93,60 @@ minetest.register_node("living_trees:branch_4", {
 	groups = {oddly_breakable_by_hand=2},
 	selection_box = stick_nodebox,
 	collision_box = stick_nodebox
+})
+
+minetest.register_node("living_trees:branch_1", {
+	tiles = {"default_tree.png"},
+	drawtype = "nodebox",
+	paramtype = "light",
+	paramtype2 = "wallmounted",
+	groups = {oddly_breakable_by_hand=2},
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{-0.375, -0.625, -0.375, 0.375, 0.375, 0.375},
+		}
+	}
+})
+
+minetest.register_node("living_trees:branch_2", {
+	tiles = {"default_tree.png"},
+	drawtype = "nodebox",
+	paramtype = "light",
+	paramtype2 = "wallmounted",
+	groups = {oddly_breakable_by_hand=2},
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{-0.25, -0.75, -0.25, 0.25, 0.25, 0.25},
+		}
+	}
+})
+
+minetest.register_node("living_trees:branch_3", {
+	tiles = {"default_tree.png"},
+	drawtype = "nodebox",
+	paramtype = "light",
+	paramtype2 = "wallmounted",
+	groups = {oddly_breakable_by_hand=2},
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{-0.125, -0.875, -0.125, 0.125, 0.125, 0.125},
+		}
+	}
+})
+
+minetest.register_node("living_trees:branch_4", {
+	tiles = {"default_tree.png"},
+	drawtype = "nodebox",
+	paramtype = "light",
+	paramtype2 = "wallmounted",
+	groups = {oddly_breakable_by_hand=2},
+	node_box = {
+		type = "fixed",
+		fixed = {
+			{-0.0625, -0.9375, -0.0625, 0.0625, 0.0625, 0.0625},
+		}
+	}
 })
