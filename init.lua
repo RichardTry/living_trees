@@ -1,6 +1,12 @@
 living_trees = {plants = {}}
 
+--[[ L-strings:
+	Apple tree: 	TTT[^Q[+W-E&R][-W+E&R] ][&Q[+W-E^R][-W+E^R] ]Q[^W&E^R][&W^E&R][+W-E+R][-W+E-R]
+	Pine: 
+]]
+
 local modpath = minetest.get_modpath("living_trees")
+dofile(modpath.."/breaking.lua")
 dofile(modpath.."/branches.lua")
 
 minetest.register_node("living_trees:roots", {
@@ -8,7 +14,7 @@ minetest.register_node("living_trees:roots", {
 	tiles = {"default_dirt.png^living_trees_roots.png"},
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
-		meta:set_string("lstring", "TTT[^Q[+W-E&R][-W+E&R]][&Q[+W-E^R][-W+E^R]]Q[^W&E^R][&W^E&R][+W-E+R][-W+E-R]")
+		meta:set_string("lstring", "TTTTT^[QW[+E-R][-E+R]ER]+[QW[+E-R][-E+R]ER]+[QW[+E-R][-E+R]ER]+[QW[+E-R][-E+R]ER]&Q^[WE[+R][-R]R]+[WE[+R][-R]R]+[WE[+R][-R]R]+[WE[+R][-R]R]&W^[ER]+[ER]+[ER]+[ER]&E^[R]+[R]+[R]+[R]&R")
 	end,
 	groups = {crumbly = 2, choppy = 1}
 })
@@ -57,7 +63,7 @@ end
 function living_trees.register_tree(tree)
 	minetest.register_abm({
 		nodenames = tree.roots,
-		interval = 3.0, -- Run every n seconds
+		interval = 1.0, -- Run every n seconds
 		chance = 1, -- Select every 1 in n nodes
 		action = function(pos, node, active_object_count, active_object_count_wider)
 			local curpos = pos
@@ -236,7 +242,7 @@ function living_trees.register_tree(tree)
 		end
 	})
 end
-
+--[[
 minetest.register_abm({
     nodenames = {"living_trees:branch_3_4", "living_trees:branch_4"},
     interval = 1.0, -- Run every 10 seconds
@@ -255,5 +261,6 @@ minetest.register_abm({
 	end
     end
 })
+]]
 
 living_trees.register_tree({name = "tree", roots = {"living_trees:roots"} })

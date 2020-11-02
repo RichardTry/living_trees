@@ -41,7 +41,10 @@ minetest.register_node("living_trees:branch_T_1", {
 	paramtype2 = "wallmounted",
 	groups = {oddly_breakable_by_hand=2},
 	selection_box = large_nodebox,
-	collision_box = large_nodebox
+	collision_box = large_nodebox,
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		break_childs(pos)
+	end
 })
 
 minetest.register_node("living_trees:branch_1_2", {
@@ -58,7 +61,10 @@ minetest.register_node("living_trees:branch_1_2", {
 	paramtype2 = "wallmounted",
 	groups = {oddly_breakable_by_hand=2},
 	selection_box = medium_nodebox,
-	collision_box = medium_nodebox
+	collision_box = medium_nodebox,
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		break_childs(pos)
+	end
 })
 
 minetest.register_node("living_trees:branch_2_3", {
@@ -75,7 +81,10 @@ minetest.register_node("living_trees:branch_2_3", {
 	paramtype2 = "wallmounted",
 	groups = {oddly_breakable_by_hand=2},
 	selection_box = small_nodebox,
-	collision_box = small_nodebox
+	collision_box = small_nodebox,
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		break_childs(pos)
+	end
 })
 
 minetest.register_node("living_trees:branch_3_4", {
@@ -92,7 +101,10 @@ minetest.register_node("living_trees:branch_3_4", {
 	paramtype2 = "wallmounted",
 	groups = {oddly_breakable_by_hand=2},
 	selection_box = stick_nodebox,
-	collision_box = stick_nodebox
+	collision_box = stick_nodebox,
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		break_childs(pos)
+	end
 })
 
 minetest.register_node("living_trees:branch_1", {
@@ -106,7 +118,10 @@ minetest.register_node("living_trees:branch_1", {
 		fixed = {
 			{-0.375, -0.625, -0.375, 0.375, 0.375, 0.375},
 		}
-	}
+	},
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		break_childs(pos)
+	end
 })
 
 minetest.register_node("living_trees:branch_2", {
@@ -120,7 +135,10 @@ minetest.register_node("living_trees:branch_2", {
 		fixed = {
 			{-0.25, -0.75, -0.25, 0.25, 0.25, 0.25},
 		}
-	}
+	},
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		break_childs(pos)
+	end
 })
 
 minetest.register_node("living_trees:branch_3", {
@@ -134,7 +152,10 @@ minetest.register_node("living_trees:branch_3", {
 		fixed = {
 			{-0.125, -0.875, -0.125, 0.125, 0.125, 0.125},
 		}
-	}
+	},
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		break_childs(pos)
+	end
 })
 
 minetest.register_node("living_trees:branch_4", {
@@ -148,5 +169,8 @@ minetest.register_node("living_trees:branch_4", {
 		fixed = {
 			{-0.0625, -0.9375, -0.0625, 0.0625, 0.0625, 0.0625},
 		}
-	}
+	},
+	after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		break_childs(pos)
+	end
 })
