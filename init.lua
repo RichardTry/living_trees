@@ -1,23 +1,8 @@
-living_trees = {plants = {}}
-
---[[ L-strings:
-	Apple tree: 	TTT[^Q[+W-E&R][-W+E&R] ][&Q[+W-E^R][-W+E^R] ]Q[^W&E^R][&W^E&R][+W-E+R][-W+E-R]
-	Pine: 
-]]
+living_trees = {}
 
 local modpath = minetest.get_modpath("living_trees")
 dofile(modpath.."/breaking.lua")
 dofile(modpath.."/branches.lua")
-
-minetest.register_node("living_trees:roots", {
-	description = "Roots",
-	tiles = {"default_dirt.png^living_trees_roots.png"},
-	on_construct = function(pos)
-		local meta = minetest.get_meta(pos)
-		meta:set_string("lstring", "TTTTT^[QW[+E-R][-E+R]ER]+[QW[+E-R][-E+R]ER]+[QW[+E-R][-E+R]ER]+[QW[+E-R][-E+R]ER]&Q^[WE[+R][-R]R]+[WE[+R][-R]R]+[WE[+R][-R]R]+[WE[+R][-R]R]&W^[ER]+[ER]+[ER]+[ER]&E^[R]+[R]+[R]+[R]&R")
-	end,
-	groups = {crumbly = 2, choppy = 1}
-})
 
 function opposite_dir(dir)
 	if dir % 2 == 0 then
@@ -61,10 +46,45 @@ function add_dir_to_pos(pos, dir)
 end
 
 function living_trees.register_tree(tree)
+
+	for _, root in ipairs(tree.roots) do
+		minetest.override_item(root,
+		{
+			after_dig_node = function(pos, oldnode, oldmetadata, digger)
+				break_childs(pos, oldnode, true)
+			end
+		})
+	end
+
+	local trunk_def = table.copy(minetest.registered_nodes[tree.trunk])
+	trunk_def.description = tree.name.." trunk"
+	trunk_def.drop = tree.trunk
+	trunk_def.paramtype2 = "wallmounted"
+	trunk_def.on_place = nil
+	trunk_def.after_dig_node = function(pos, oldnode, oldmetadata, digger)
+		break_childs(pos, oldnode)
+	end
+
+	tree.name = tree.name:lower()
+
+	minetest.register_node("living_trees:branch_trunk_"..tree.name, trunk_def)
+
+	local branch_trunk = "living_trees:branch_trunk_"..tree.name
+
+	register_branches(tree.name, tree.texture)
+	local branch_3_4 = "living_trees:branch_3_4_"..tree.name
+	local branch_2_3 = "living_trees:branch_2_3_"..tree.name
+	local branch_1_2 = "living_trees:branch_1_2_"..tree.name
+	local branch_T_1 = "living_trees:branch_T_1_"..tree.name
+	local branch_4 = "living_trees:branch_4_"..tree.name
+	local branch_3 = "living_trees:branch_3_"..tree.name
+	local branch_2 = "living_trees:branch_2_"..tree.name
+	local branch_1 = "living_trees:branch_1_"..tree.name
+
 	minetest.register_abm({
 		nodenames = tree.roots,
-		interval = 1.0, -- Run every n seconds
-		chance = 1, -- Select every 1 in n nodes
+		interval = 50.0,
+		chance = 100,
 		action = function(pos, node, active_object_count, active_object_count_wider)
 			local curpos = pos
 			local currot = {dir = 0, up = 3, left = 4}		-- In wallmounted numbers
@@ -103,114 +123,114 @@ function living_trees.register_tree(tree)
 				elseif c == "T" then
 					add_dir_to_pos(curpos, currot.dir)
 					local name = minetest.get_node(curpos).name
-					if name == "air" or name == "default:leaves" then
-						minetest.set_node(curpos, {name="living_trees:branch_3_4", param2 = opposite_dir(currot.dir)})
+					if name == "air" or name == tree.leaves then
+						minetest.set_node(curpos, {name=branch_3_4, param2 = opposite_dir(currot.dir)})
 						skipbranch = skipbranch + 1 
-					elseif name == "living_trees:branch_3_4" then
-						minetest.set_node(curpos, {name="living_trees:branch_2_3", param2 = opposite_dir(currot.dir)})
-					elseif name == "living_trees:branch_2_3" then
-						minetest.set_node(curpos, {name="living_trees:branch_1_2", param2 = opposite_dir(currot.dir)})
-					elseif name == "living_trees:branch_1_2" then
-						minetest.set_node(curpos, {name="living_trees:branch_T_1", param2 = opposite_dir(currot.dir)})
-					elseif name == "living_trees:branch_T_1" then
-						minetest.set_node(curpos, {name="default:tree", param2 = wallmounted_to_facedir(currot.dir) * 4})
-					elseif name ~= "default:tree" then
+					elseif name == branch_3_4 then
+						minetest.set_node(curpos, {name=branch_2_3, param2 = opposite_dir(currot.dir)})
+					elseif name == branch_2_3 then
+						minetest.set_node(curpos, {name=branch_1_2, param2 = opposite_dir(currot.dir)})
+					elseif name == branch_1_2 then
+						minetest.set_node(curpos, {name=branch_T_1, param2 = opposite_dir(currot.dir)})
+					elseif name == branch_T_1 then
+						minetest.set_node(curpos, {name=branch_trunk, param2 = opposite_dir(currot.dir)}) --wallmounted_to_facedir(currot.dir) * 4})
+					elseif name ~= branch_trunk then
 						skipbranch = skipbranch + 1
 					end
 				elseif c == "Q" then
 					add_dir_to_pos(curpos, currot.dir)
 					local name = minetest.get_node(curpos).name
-					if name == "air" or name == "default:leaves" then
-						minetest.set_node(curpos, {name="living_trees:branch_3_4", param2 = opposite_dir(currot.dir)})
+					if name == "air" or name == tree.leaves then
+						minetest.set_node(curpos, {name=branch_3_4, param2 = opposite_dir(currot.dir)})
 						skipbranch = skipbranch + 1
-					elseif name == "living_trees:branch_3_4" then
-						minetest.set_node(curpos, {name="living_trees:branch_2_3", param2 = opposite_dir(currot.dir)})
-					elseif name == "living_trees:branch_2_3" then
-						minetest.set_node(curpos, {name="living_trees:branch_1_2", param2 = opposite_dir(currot.dir)})
-					elseif name == "living_trees:branch_1_2" then
-						minetest.set_node(curpos, {name="living_trees:branch_T_1", param2 = opposite_dir(currot.dir)})
-					elseif name ~= "living_trees:branch_T_1" then
+					elseif name == branch_3_4 then
+						minetest.set_node(curpos, {name=branch_2_3, param2 = opposite_dir(currot.dir)})
+					elseif name == branch_2_3 then
+						minetest.set_node(curpos, {name=branch_1_2, param2 = opposite_dir(currot.dir)})
+					elseif name == branch_1_2 then
+						minetest.set_node(curpos, {name=branch_T_1, param2 = opposite_dir(currot.dir)})
+					elseif name ~= branch_T_1 then
 						skipbranch = skipbranch + 1
 					end
 				elseif c == "W" then
 					add_dir_to_pos(curpos, currot.dir)
 					local name = minetest.get_node(curpos).name
-					if name == "air" or name == "default:leaves" then
-						minetest.set_node(curpos, {name="living_trees:branch_3_4", param2 = opposite_dir(currot.dir)})
+					if name == "air" or name == tree.leaves then
+						minetest.set_node(curpos, {name=branch_3_4, param2 = opposite_dir(currot.dir)})
 						skipbranch = skipbranch + 1
-					elseif name == "living_trees:branch_3_4" then
-						minetest.set_node(curpos, {name="living_trees:branch_2_3", param2 = opposite_dir(currot.dir)})
-					elseif name == "living_trees:branch_2_3" then
-						minetest.set_node(curpos, {name="living_trees:branch_1_2", param2 = opposite_dir(currot.dir)})
-					elseif name ~= "living_trees:branch_1_2" then
+					elseif name == branch_3_4 then
+						minetest.set_node(curpos, {name=branch_2_3, param2 = opposite_dir(currot.dir)})
+					elseif name == branch_2_3 then
+						minetest.set_node(curpos, {name=branch_1_2, param2 = opposite_dir(currot.dir)})
+					elseif name ~= branch_1_2 then
 						skipbranch = skipbranch + 1
 					end
 				elseif c == "E" then
 					add_dir_to_pos(curpos, currot.dir)
 					local name = minetest.get_node(curpos).name
-					if name == "air" or name == "default:leaves" then
-						minetest.set_node(curpos, {name="living_trees:branch_3_4", param2 = opposite_dir(currot.dir)})
+					if name == "air" or name == tree.leaves then
+						minetest.set_node(curpos, {name=branch_3_4, param2 = opposite_dir(currot.dir)})
 						skipbranch = skipbranch + 1
-					elseif name == "living_trees:branch_3_4" then
-						minetest.set_node(curpos, {name="living_trees:branch_2_3", param2 = opposite_dir(currot.dir)})
-					elseif name ~= "living_trees:branch_2_3" then
+					elseif name == branch_3_4 then
+						minetest.set_node(curpos, {name=branch_2_3, param2 = opposite_dir(currot.dir)})
+					elseif name ~= branch_2_3 then
 						skipbranch = skipbranch + 1
 					end
 				elseif c == "R" then
 					add_dir_to_pos(curpos, currot.dir)
 					local name = minetest.get_node(curpos).name
-					if name == "air" or name == "default:leaves" then
-						minetest.set_node(curpos, {name="living_trees:branch_3_4", param2 = opposite_dir(currot.dir)})
+					if name == "air" or name == tree.leaves then
+						minetest.set_node(curpos, {name=branch_3_4, param2 = opposite_dir(currot.dir)})
 						skipbranch = skipbranch + 1
-					elseif name ~= "living_trees:branch_3_4" then
+					elseif name ~= branch_3_4 then
 						skipbranch = skipbranch + 1
 					end
 				elseif c == "1" then
 					add_dir_to_pos(curpos, currot.dir)
 					local name = minetest.get_node(curpos).name
-					if name == "air" or name == "default:leaves" then
-						minetest.set_node(curpos, {name="living_trees:branch_4", param2 = opposite_dir(currot.dir)})
+					if name == "air" or name == tree.leaves then
+						minetest.set_node(curpos, {name=branch_4, param2 = opposite_dir(currot.dir)})
 						skipbranch = skipbranch + 1
-					elseif name == "living_trees:branch_4" then
-						minetest.set_node(curpos, {name="living_trees:branch_3", param2 = opposite_dir(currot.dir)})
-					elseif name == "living_trees:branch_3" then
-						minetest.set_node(curpos, {name="living_trees:branch_2", param2 = opposite_dir(currot.dir)})
-					elseif name == "living_trees:branch_2" then
-						minetest.set_node(curpos, {name="living_trees:branch_1", param2 = opposite_dir(currot.dir)})
-					elseif name ~= "living_trees:branch_1" then
+					elseif name == branch_4 then
+						minetest.set_node(curpos, {name=branch_3, param2 = opposite_dir(currot.dir)})
+					elseif name == branch_3 then
+						minetest.set_node(curpos, {name=branch_2, param2 = opposite_dir(currot.dir)})
+					elseif name == branch_2 then
+						minetest.set_node(curpos, {name=branch_1, param2 = opposite_dir(currot.dir)})
+					elseif name ~= branch_1 then
 						skipbranch = skipbranch + 1
 					end
 				elseif c == "2" then
 					add_dir_to_pos(curpos, currot.dir)
 					local name = minetest.get_node(curpos).name
-					if name == "air" or name == "default:leaves" then
-						minetest.set_node(curpos, {name="living_trees:branch_4", param2 = opposite_dir(currot.dir)})
+					if name == "air" or name == tree.leaves then
+						minetest.set_node(curpos, {name=branch_4, param2 = opposite_dir(currot.dir)})
 						skipbranch = skipbranch + 1
-					elseif name == "living_trees:branch_4" then
-						minetest.set_node(curpos, {name="living_trees:branch_3", param2 = opposite_dir(currot.dir)})
-					elseif name == "living_trees:branch_3" then
-						minetest.set_node(curpos, {name="living_trees:branch_2", param2 = opposite_dir(currot.dir)})
-					elseif name ~= "living_trees:branch_2" then
+					elseif name == branch_4 then
+						minetest.set_node(curpos, {name=branch_3, param2 = opposite_dir(currot.dir)})
+					elseif name == branch_3 then
+						minetest.set_node(curpos, {name=branch_2, param2 = opposite_dir(currot.dir)})
+					elseif name ~= branch_2 then
 						skipbranch = skipbranch + 1
 					end
 				elseif c == "3" then
 					add_dir_to_pos(curpos, currot.dir)
 					local name = minetest.get_node(curpos).name
-					if name == "air" or name == "default:leaves" then
-						minetest.set_node(curpos, {name="living_trees:branch_4", param2 = opposite_dir(currot.dir)})
+					if name == "air" or name == tree.leaves then
+						minetest.set_node(curpos, {name=branch_4, param2 = opposite_dir(currot.dir)})
 						skipbranch = skipbranch + 1
-					elseif name == "living_trees:branch_4" then
-						minetest.set_node(curpos, {name="living_trees:branch_3", param2 = opposite_dir(currot.dir)})
-					elseif name ~= "living_trees:branch_3" then
+					elseif name == branch_4 then
+						minetest.set_node(curpos, {name=branch_3, param2 = opposite_dir(currot.dir)})
+					elseif name ~= branch_3 then
 						skipbranch = skipbranch + 1
 					end
 				elseif c == "4" then
 					add_dir_to_pos(curpos, currot.dir)
 					local name = minetest.get_node(curpos).name
-					if name == "air" or name == "default:leaves" then
-						minetest.set_node(curpos, {name="living_trees:branch_4", param2 = opposite_dir(currot.dir)})
+					if name == "air" or name == tree.leaves then
+						minetest.set_node(curpos, {name=branch_4, param2 = opposite_dir(currot.dir)})
 						skipbranch = skipbranch + 1
-					elseif name ~= "living_trees:branch_4" then
+					elseif name ~= branch_4 then
 						skipbranch = skipbranch + 1
 					end
 				elseif c == "^" then
@@ -241,26 +261,27 @@ function living_trees.register_tree(tree)
 			end
 		end
 	})
-end
---[[
-minetest.register_abm({
-    nodenames = {"living_trees:branch_3_4", "living_trees:branch_4"},
-    interval = 1.0, -- Run every 10 seconds
-    chance = 1, -- Select every 1 in 50 nodes
-    action = function(pos, node, active_object_count, active_object_count_wider)
-	for x = -1,1 do
-		for y = -1,1 do
-			for z = -1,1 do
-				local curpos = {x = x, y = y, z = z}
-				curpos = vector.add(pos, curpos)
-				if minetest.get_node(curpos).name == "air" and (y == 0 or x == 0 or z == 0) then
-					minetest.set_node(curpos, {name = "default:leaves"})
+	
+	if tree.leaves then
+		minetest.register_abm({
+		    nodenames = {branch_3_4, branch_4},
+		    interval = 30.0,
+		    chance = 50,
+		    action = function(pos, node, active_object_count, active_object_count_wider)
+			for x = -1,1 do
+				for y = -1,1 do
+					for z = -1,1 do
+						local curpos = {x = x, y = y, z = z}
+						curpos = vector.add(pos, curpos)
+						if minetest.get_node(curpos).name == "air" and (y == 0 or x == 0 or z == 0) then
+							minetest.set_node(curpos, {name = tree.leaves})
+						end
+					end
 				end
 			end
-		end
+		    end
+		})
 	end
-    end
-})
-]]
+end
 
-living_trees.register_tree({name = "tree", roots = {"living_trees:roots"} })
+dofile(modpath.."/default_trees.lua")
