@@ -71,10 +71,18 @@ function living_trees.register_tree(tree)
         waving = 1,
         param2 = 2,
         groups = { oddly_breakable_by_hand = 3, tree = 1, flammable = 2, attached_node = 1, sapling = 1 },
+        on_construct = function(pos)
+            minetest.get_node_timer(pos):start(math.random(5, 15))
+        end,
+        on_timer = function(pos, elapsed)
+            minetest.set_node({ x = pos.x, y = pos.y - 1, z = pos.z }, { name = "living_trees:" .. tree.name .. "_roots", param2 = 32 })
+        end,
         after_dig_node = function(pos)
-            minetest.set_node({ x = pos.x, y = pos.y - 1, z = pos.z}, { name = "default:dirt" })
+            minetest.set_node({ x = pos.x, y = pos.y - 1, z = pos.z }, { name = "default:dirt" })
         end,
     })
+
+    tree.sapling = "living_trees:" .. tree.name .. "_sapling"
 
     tree.roots = { "living_trees:" .. tree.name .. "_roots" }
 
@@ -153,7 +161,7 @@ function living_trees.register_tree(tree)
                 elseif c == "T" then
                     add_dir_to_pos(curpos, currot.dir)
                     local name = minetest.get_node(curpos).name
-                    if name == "air" or name == tree.leaves then
+                    if name == "air" or name == tree.leaves or name == tree.sapling then
                         minetest.set_node(curpos, { name = branch_3_4, param2 = opposite_dir(currot.dir) })
                         skipbranch = skipbranch + 1
                     elseif name == branch_3_4 then
