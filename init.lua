@@ -47,6 +47,20 @@ end
 
 function living_trees.register_tree(tree)
 
+    tree.name = tree.name:lower()
+
+    minetest.register_node("living_trees:" .. tree.name .. "_roots", {
+        description = tree.name .. " roots",
+        tiles = { "default_dirt.png^living_trees_roots.png" },
+        on_construct = function(pos)
+            local meta = minetest.get_meta(pos)
+            meta:set_string("lstring", tree.lstring)
+        end,
+        groups = { crumbly = 2, choppy = 1 }
+    })
+
+    tree.roots = { "living_trees:" .. tree.name .. "_roots" }
+
     for _, root in ipairs(tree.roots) do
         minetest.override_item(root,
                 {
@@ -65,8 +79,6 @@ function living_trees.register_tree(tree)
         break_childs(pos, oldnode)
     end
 
-    tree.name = tree.name:lower()
-
     minetest.register_node("living_trees:branch_trunk_" .. tree.name, trunk_def)
 
     local branch_trunk = "living_trees:branch_trunk_" .. tree.name
@@ -83,8 +95,9 @@ function living_trees.register_tree(tree)
 
     minetest.register_abm({
         nodenames = tree.roots,
-        interval = 50.0,
-        chance = 100,
+        interval = tree.growthInterval * 2,
+        chance = tree.growthInterval / 2,
+        catch_up = true,
         action = function(pos, node, active_object_count, active_object_count_wider)
             local curpos = pos
             local currot = { dir = 0, up = 3, left = 4 }        -- In wallmounted numbers
@@ -264,9 +277,11 @@ function living_trees.register_tree(tree)
 
     if tree.leaves then
         minetest.register_abm({
+            label = "Leaf growth (" .. tree.name .. ")",
             nodenames = { branch_3_4, branch_4 },
-            interval = 30.0,
-            chance = 50,
+            interval = tree.growthInterval * 2,
+            chance = tree.growthInterval / 2,
+            catch_up = true,
             action = function(pos, node, active_object_count, active_object_count_wider)
                 for x = -1, 1 do
                     for y = -1, 1 do
@@ -279,6 +294,17 @@ function living_trees.register_tree(tree)
                         end
                     end
                 end
+            end
+        })
+
+        minetest.register_abm({
+            label = "Leaf death (" .. tree.name .. ")",
+            nodenames = { tree.leaves },
+            neighbors = { branch_1 },
+            interval = 10,
+            chance = 10,
+            action = function(pos, node, active_object_count, active_object_count_wider)
+                minetest.remove_node(pos)
             end
         })
     end
