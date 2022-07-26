@@ -59,6 +59,23 @@ function living_trees.register_tree(tree)
         groups = { crumbly = 2, choppy = 1 }
     })
 
+    minetest.register_node("living_trees:" .. tree.name .. "_sapling", {
+        description = tree.name .. "sapling",
+        tiles = { "Sapling.png" },
+        paramtype = "light",
+        drawtype = "plantlike",
+        paramtype2 = "meshoptions",
+        sunlight_propagates = true,
+        walkable = false,
+        move_resistance = 2,
+        waving = 1,
+        param2 = 2,
+        groups = { oddly_breakable_by_hand = 3, tree = 1, flammable = 2, attached_node = 1, sapling = 1 },
+        after_dig_node = function(pos)
+            minetest.set_node({ x = pos.x, y = pos.y - 1, z = pos.z}, { name = "default:dirt" })
+        end,
+    })
+
     tree.roots = { "living_trees:" .. tree.name .. "_roots" }
 
     for _, root in ipairs(tree.roots) do
