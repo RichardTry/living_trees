@@ -78,9 +78,12 @@ function living_trees.register_tree(tree)
             local pos = self.object:getpos()
             pos.y = pos.y - 1
             local node = minetest.get_node(pos)
-            if node.name ~= "air" then
-                minetest.set_node(pos, { name = "living_trees:" .. tree.name .. "_roots" })
-                self.object:remove()
+            if (node.name ~= "air") then
+                if (math.random(0,tree.growthInterval * 2) == tree.growthInterval) then
+                    local new_node = {name = "living_trees:" .. tree.name .. "_roots"}
+                    minetest.set_node(pos, new_node)
+                    self.object:remove()
+                end
             end
         end,
         on_activate = function(self, staticdata, dtime_s)
