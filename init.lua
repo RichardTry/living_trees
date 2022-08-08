@@ -49,6 +49,45 @@ function living_trees.register_tree(tree)
 
     tree.name = tree.name:lower()
 
+    minetest.register_craftitem("living_trees:" .. tree.name .. "_seed", {
+        description = tree.name .. " seed",
+        tiles = { "seed.png" },
+        inventory_image = "seed.png",
+        on_place = function(itemstack, placer, pointed_thing)
+            local pos = pointed_thing.above
+            if minetest.get_node(pos).name == "air" then
+                minetest.add_entity(pos, "living_trees:" .. tree.name .. "_seedEntity")
+                itemstack:take_item()
+            end
+            return itemstack
+        end,
+        on_drop = function(itemstack, dropper, pos)
+            minetest.add_entity(pos, "living_trees:" .. tree.name .. "_seedEntity")
+        end,
+    })
+
+    minetest.register_entity("living_trees:" .. tree.name .. "_seedEntity", {
+        visual = "wielditem",
+        wield_item = "living_trees:" .. tree.name .. "_seed",
+        visual_size = {x = 0.25, y = 0.25, z = 0.25},
+        collisionbox = {-0.25, 0.0, -0.25, 0.25, 0.25, 0.25},
+        physical = true,
+        automatic_rotate = 1,
+        collide_with_objects = false,
+        on_step = function(self, dtime)
+            local pos = self.object:getpos()
+            pos.y = pos.y - 1
+            local node = minetest.get_node(pos)
+            if node.name ~= "air" then
+                minetest.set_node(pos, { name = "living_trees:" .. tree.name .. "_roots" })
+                self.object:remove()
+            end
+        end,
+        on_activate = function(self, staticdata, dtime_s)
+            self.object:set_acceleration(vector.new(0, -9.8, 0))
+        end
+    })
+
     minetest.register_node("living_trees:" .. tree.name .. "_roots", {
         description = tree.name .. " roots",
         tiles = { "default_dirt.png^living_trees_roots.png" },
@@ -72,7 +111,7 @@ function living_trees.register_tree(tree)
         param2 = 2,
         groups = { oddly_breakable_by_hand = 3, tree = 1, flammable = 2, attached_node = 1, sapling = 1 },
         on_construct = function(pos)
-            minetest.get_node_timer(pos):start(math.random(5, 15))
+            minetest.get_node_timer(pos):start(math.random(1, tree.growthInterval * 2))
         end,
         on_timer = function(pos, elapsed)
             minetest.set_node({ x = pos.x, y = pos.y - 1, z = pos.z }, { name = "living_trees:" .. tree.name .. "_roots", param2 = 32 })
@@ -83,7 +122,6 @@ function living_trees.register_tree(tree)
     })
 
     tree.sapling = "living_trees:" .. tree.name .. "_sapling"
-
     tree.roots = { "living_trees:" .. tree.name .. "_roots" }
 
     for _, root in ipairs(tree.roots) do
@@ -325,7 +363,7 @@ function living_trees.register_tree(tree)
         minetest.register_abm({
             label = "Leaf death (" .. tree.name .. ")",
             nodenames = { tree.leaves },
-            neighbors = { branch_1 },
+            neighbors = { branch_trunk, branch_1, branch_2 },
             interval = 10,
             chance = 10,
             action = function(pos, node, active_object_count, active_object_count_wider)
