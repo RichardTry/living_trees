@@ -123,6 +123,7 @@ function living_trees.register_tree(tree)
 
                     if (nodeGroup ~= nil and nodeGroup > 0) then
                         minetest.set_node(pos, { name = "living_trees:" .. tree.name .. "_roots" })
+                        minetest.set_node({ x=pos.x,y=pos.y+1,z=pos.z }, { name = "living_trees:" .. tree.name .. "_sapling" })
                         self.object:remove()
                     else
                         health = health - 2
