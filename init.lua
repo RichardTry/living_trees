@@ -53,42 +53,73 @@ function living_trees.register_tree(tree)
         description = tree.name .. " seed",
         tiles = { "seed.png" },
         inventory_image = "seed.png",
+        groups = { seed = 1 },
         on_place = function(itemstack, placer, pointed_thing)
             local pos = pointed_thing.above
             if minetest.get_node(pos).name == "air" then
                 minetest.add_entity(pos, "living_trees:" .. tree.name .. "_seedEntity")
-                itemstack:take_item()
+                itemstack:take_item(1)
             end
             return itemstack
         end,
         on_drop = function(itemstack, dropper, pos)
             minetest.add_entity(pos, "living_trees:" .. tree.name .. "_seedEntity")
+            itemstack:take_item(1)
         end,
     })
 
     minetest.register_entity("living_trees:" .. tree.name .. "_seedEntity", {
         visual = "wielditem",
         wield_item = "living_trees:" .. tree.name .. "_seed",
-        visual_size = {x = 0.25, y = 0.25, z = 0.25},
-        collisionbox = {-0.25, 0.0, -0.25, 0.25, 0.25, 0.25},
+        visual_size = { x = 0.25, y = 0.25, z = 0.25 },
+        collisionbox = { -0.25, 0.0, -0.25, 0.25, 0.25, 0.25 },
         physical = true,
         automatic_rotate = 1,
         collide_with_objects = false,
-        on_step = function(self, dtime)
-            local pos = self.object:getpos()
-            pos.y = pos.y - 1
-            local node = minetest.get_node(pos)
-            if (node.name ~= "air") then
-                if (math.random(0,tree.growthInterval * 2) == tree.growthInterval) then
-                    local new_node = {name = "living_trees:" .. tree.name .. "_roots"}
-                    minetest.set_node(pos, new_node)
-                    self.object:remove()
-                end
-            end
-        end,
         on_activate = function(self, staticdata, dtime_s)
             self.object:set_acceleration(vector.new(0, -9.8, 0))
-        end
+
+            local placeTree = function()
+            end
+
+            placeTree = function(chance)
+
+                if (chance == nil) then
+                    chance = 1
+                end
+
+                -- Seed expires
+                if (chance > 50) then
+                    self.object:remove()
+                end
+                if (math.random(0, 100) <= chance) then
+                    local pos = self.object:getpos()
+
+                    if (pos == nil) then
+                        self.object:remove()
+                    end
+
+                    local node = minetest.get_node(pos)
+
+                    if (node.name ~= "air") then
+                        minetest.set_node(pos, { name = "living_trees:" .. tree.name .. "_roots" })
+                        self.object:remove()
+                    end
+
+                else
+                    minetest.after(tree.growthInterval + (chance / 4), placeTree, chance + 1)
+                end
+            end
+
+            minetest.after(tree.growthInterval, placeTree, 1)
+
+
+        end,
+        on_rightclick = function(self, clicker)
+            local stack = ItemStack({ name = "living_trees:" .. tree.name .. "_seed", count = 1 })
+            clicker:get_inventory():add_item("main", stack)
+            self.object:remove()
+        end,
     })
 
     minetest.register_node("living_trees:" .. tree.name .. "_roots", {
