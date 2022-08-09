@@ -101,7 +101,9 @@ function living_trees.register_tree(tree)
                 end
 
 
-                -- Seed expires if it sits around for too long.
+                -- Seed expires if it sits around for too long. This is for performance reasons.
+                --TODO: make a small seed node that will occasionally check for favourable conditions
+                --      and if so, turn back into the seed entity.
                 if (chance > 50 or pos == nil) then
                     health = health - 1
                     minetest.after(tree.growthInterval, placeTree, chance + 1, health)
