@@ -79,6 +79,12 @@ function living_trees.register_tree(tree)
         physical = true,
         automatic_rotate = 1,
         collide_with_objects = false,
+        on_step = function(self, dtime, moveresult)
+            if (moveresult.touching_ground) then
+                local velocity = self.object:get_velocity()
+                self.object:add_velocity({ x = -velocity.x, y = -velocity.y, z = -velocity.z })
+            end
+        end,
         on_activate = function(self, staticdata, dtime_s)
             self.object:set_acceleration(vector.new(0, -9.8, 0))
 
@@ -105,16 +111,14 @@ function living_trees.register_tree(tree)
                 --TODO: make a small seed node that will occasionally check for favourable conditions
                 --      and if so, turn back into the seed entity.
                 if (chance > 50 or pos == nil) then
-                    health = health - 1
-                    minetest.after(tree.growthInterval, placeTree, chance + 1, health)
+                    minetest.after(tree.growthInterval, placeTree, chance + 1, health - 1)
                     return
                 end
 
                 -- Check seed light levels. If it is too low, reduce health and don't try to grow...
                 local lightLevel = minetest.get_node_light({ x = pos.x, y = pos.y + 1, z = pos.z }, 0.5)
                 if (lightLevel ~= nil and lightLevel <= 9) then
-                    health = health - 1
-                    minetest.after(tree.growthInterval, placeTree, chance + 1, health)
+                    minetest.after(tree.growthInterval, placeTree, chance + 1, health - 1)
                     return
                 end
 
@@ -125,11 +129,10 @@ function living_trees.register_tree(tree)
 
                     if (nodeGroup ~= nil and nodeGroup > 0) then
                         minetest.set_node(pos, { name = "living_trees:" .. tree.name .. "_roots" })
-                        minetest.set_node({ x=pos.x,y=pos.y+1,z=pos.z }, { name = "living_trees:" .. tree.name .. "_sapling" })
+                        minetest.set_node({ x = pos.x, y = pos.y + 1, z = pos.z }, { name = "living_trees:" .. tree.name .. "_sapling" })
                         self.object:remove()
                     else
-                        health = health - 2
-                        minetest.after(tree.growthInterval, placeTree, 100, health)
+                        minetest.after(tree.growthInterval, placeTree, 100, health - 2)
                     end
                 else
                     minetest.after(tree.growthInterval, placeTree, chance + 1, health)
@@ -138,12 +141,26 @@ function living_trees.register_tree(tree)
 
             minetest.after(tree.growthInterval, placeTree, 1)
         end,
-        on_rightclick = function(self, clicker)
+        on_punch = function(self, clicker, time_from_last_punch, tool_capabilities, dir)
             local stack = ItemStack({ name = "living_trees:" .. tree.name .. "_seed", count = 1 })
             clicker:get_inventory():add_item("main", stack)
             self.object:remove()
-        end,
+        end
     })
+
+    if (tree.leaves) then
+        minetest.override_item(tree.leaves,
+                { drop = { max_items = 0 },
+                  after_destruct = function(pos, oldnode)
+
+                      local seedPos = { x = pos.x, y = pos.y + 5, z = pos.z }
+                      if (minetest.get_node(seedPos).name == "air" and math.random(0, 100) >= 0) then
+
+                          local entity = minetest.add_entity(pos, "living_trees:" .. tree.name .. "_seedEntity")
+                          entity:add_velocity(vector.new(math.random(-10, 10), 15, math.random(-10, 10)))
+                      end
+                  end })
+    end
 
     minetest.register_node("living_trees:" .. tree.name .. "_roots", {
         description = tree.name .. " roots",
@@ -151,6 +168,9 @@ function living_trees.register_tree(tree)
         on_construct = function(pos)
             local meta = minetest.get_meta(pos)
             meta:set_string("lstring", tree.lstring)
+        end,
+        on_drop = function(itemstack, dropper, pos)
+            return false
         end,
         groups = { crumbly = 2, choppy = 1 }
     })
@@ -398,8 +418,8 @@ function living_trees.register_tree(tree)
     if tree.leaves then
         minetest.register_abm({
             label = "Leaf growth (" .. tree.name .. ")",
-            nodenames = { branch_3_4, branch_4 },
-            interval = tree.growthInterval * 2,
+            nodenames = { branch_3, branch_3_4, branch_4 },
+            interval = tree.growthInterval,
             chance = tree.growthInterval / 2,
             catch_up = true,
             action = function(pos, node, active_object_count, active_object_count_wider)
@@ -416,25 +436,9 @@ function living_trees.register_tree(tree)
                 end
             end
         })
-
-        minetest.register_abm({
-            label = "Leaf death (" .. tree.name .. ")",
-            nodenames = { tree.leaves },
-            neighbors = { branch_trunk, branch_1, branch_2 },
-            interval = 10,
-            chance = 10,
-            action = function(pos, node, active_object_count, active_object_count_wider)
-                minetest.remove_node(pos)
-
-                if math.random(0, 100) >= 99 then
-                    local seedPos = { x = pos.x + math.random(0, 15), y = pos.y, z = pos.z + math.random(0, 15) }
-                    if (minetest.get_node(seedPos).name == "air") then
-                        minetest.add_entity(seedPos, "living_trees:" .. tree.name .. "_seedEntity")
-                    end
-                end
-            end
-        })
     end
+
+
 end
 
 dofile(modpath .. "/default_trees.lua")
