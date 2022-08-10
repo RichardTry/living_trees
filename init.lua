@@ -91,17 +91,17 @@ function living_trees.register_tree(tree)
             local placeTree = function()
             end
 
-            placeTree = function(chance, health)
+            placeTree = function(chance, age)
                 local pos = self.object:getpos()
                 if (chance == nil) then
                     chance = 1
                 end
 
-                if (health == nil) then
-                    health = 10
+                if (age == nil) then
+                    age = 1
                 end
 
-                if (health <= 0) then
+                if (age >= 10) then
                     self.object:remove()
                     return
                 end
@@ -111,14 +111,14 @@ function living_trees.register_tree(tree)
                 --TODO: make a small seed node that will occasionally check for favourable conditions
                 --      and if so, turn back into the seed entity.
                 if (chance > 50 or pos == nil) then
-                    minetest.after(tree.growthInterval, placeTree, chance + 1, health - 1)
+                    minetest.after(tree.growthInterval, placeTree, chance + 1, age + 1)
                     return
                 end
 
                 -- Check seed light levels. If it is too low, reduce health and don't try to grow...
                 local lightLevel = minetest.get_node_light({ x = pos.x, y = pos.y + 1, z = pos.z }, 0.5)
                 if (lightLevel ~= nil and lightLevel <= 9) then
-                    minetest.after(tree.growthInterval, placeTree, chance + 1, health - 1)
+                    minetest.after(tree.growthInterval, placeTree, chance + 1, age + 1)
                     return
                 end
 
@@ -132,10 +132,10 @@ function living_trees.register_tree(tree)
                         minetest.set_node({ x = pos.x, y = pos.y + 1, z = pos.z }, { name = "living_trees:" .. tree.name .. "_sapling" })
                         self.object:remove()
                     else
-                        minetest.after(tree.growthInterval, placeTree, 100, health - 2)
+                        minetest.after(tree.growthInterval, placeTree, 100, age + 2)
                     end
                 else
-                    minetest.after(tree.growthInterval, placeTree, chance + 1, health)
+                    minetest.after(tree.growthInterval, placeTree, chance + 1, age)
                 end
             end
 
@@ -157,7 +157,7 @@ function living_trees.register_tree(tree)
                       if (minetest.get_node(seedPos).name == "air" and math.random(0, 100) >= 0) then
 
                           local entity = minetest.add_entity(pos, "living_trees:" .. tree.name .. "_seedEntity")
-                          entity:add_velocity(vector.new(math.random(-10, 10), 15, math.random(-10, 10)))
+                          entity:add_velocity(vector.new(math.random(-15, 15), math.random(-15,15), math.random(-15, 15)))
                       end
                   end })
     end
