@@ -151,13 +151,14 @@ function living_trees.register_tree(tree)
     if (tree.leaves) then
         minetest.override_item(tree.leaves,
                 { drop = { max_items = 0 },
+                  groups = { flammable = 1 },
                   after_destruct = function(pos, oldnode)
 
                       local seedPos = { x = pos.x, y = pos.y + 5, z = pos.z }
-                      if (minetest.get_node(seedPos).name == "air" and math.random(0, 100) >= 0) then
+                      if (minetest.get_node(seedPos).name == "air" and math.random(0, 100) >= 95) then
 
                           local entity = minetest.add_entity(pos, "living_trees:" .. tree.name .. "_seedEntity")
-                          entity:add_velocity(vector.new(math.random(-15, 15), math.random(-15,15), math.random(-15, 15)))
+                          entity:add_velocity(vector.new(math.random(-15, 15), math.random(-15, 15), math.random(-15, 15)))
                       end
                   end })
     end
@@ -169,8 +170,12 @@ function living_trees.register_tree(tree)
             local meta = minetest.get_meta(pos)
             meta:set_string("lstring", tree.lstring)
         end,
+        drop = { max_items = 1, items = { { rarity = 1, items = { "default:dirt" } } } },
         on_drop = function(itemstack, dropper, pos)
             return false
+        end,
+        after_dig_node = function(pos, oldnode, oldmetadata, digger)
+            break_childs(pos, oldnode, true)
         end,
         groups = { crumbly = 2, choppy = 1 }
     })
@@ -186,7 +191,7 @@ function living_trees.register_tree(tree)
         move_resistance = 2,
         waving = 1,
         param2 = 2,
-        groups = { oddly_breakable_by_hand = 3, tree = 1, flammable = 2, attached_node = 1, sapling = 1 },
+        groups = { oddly_breakable_by_hand = 3, tree = 1, flammable = 5, attached_node = 1, sapling = 1 },
         on_construct = function(pos)
             minetest.get_node_timer(pos):start(math.random(1, tree.growthInterval * 2))
         end,
@@ -201,17 +206,10 @@ function living_trees.register_tree(tree)
     tree.sapling = "living_trees:" .. tree.name .. "_sapling"
     tree.roots = { "living_trees:" .. tree.name .. "_roots" }
 
-    for _, root in ipairs(tree.roots) do
-        minetest.override_item(root,
-                {
-                    after_dig_node = function(pos, oldnode, oldmetadata, digger)
-                        break_childs(pos, oldnode, true)
-                    end
-                })
-    end
 
     local trunk_def = table.copy(minetest.registered_nodes[tree.trunk])
     trunk_def.description = tree.name .. " trunk"
+    trunk_def.groups.flammable = 4
     trunk_def.drop = tree.trunk
     trunk_def.paramtype2 = "wallmounted"
     trunk_def.on_place = nil
@@ -437,7 +435,6 @@ function living_trees.register_tree(tree)
             end
         })
     end
-
 
 end
 
