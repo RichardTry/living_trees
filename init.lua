@@ -151,7 +151,6 @@ function living_trees.register_tree(tree)
     if (tree.leaves) then
         minetest.override_item(tree.leaves,
                 { drop = { max_items = 0 },
-                  groups = { flammable = 1 },
                   after_destruct = function(pos, oldnode)
 
                       local seedPos = { x = pos.x, y = pos.y + 5, z = pos.z }
